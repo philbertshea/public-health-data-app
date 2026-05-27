@@ -41,5 +41,10 @@ jobs:
           echo "No new data changes detected this week."
         else
           git commit -m "Automated Sync: Update weekly infectious bulletin data"
-          git push
+          
+          # 1. Pull down any recent updates you made while the runner was working
+          git pull --rebase origin main
+          
+          # 2. Push the combined work safely back to GitHub
+          git push origin main
         fi
