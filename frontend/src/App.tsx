@@ -68,6 +68,9 @@ export default function App() {
   // Calculate high-level metrics for the analytics cards
   const totalCases = data.reduce((sum, item) => sum + (Number(item[selectedDisease]) || 0), 0);
   const maxWeek = data.reduce((max, item) => (Number(item[selectedDisease]) > (Number(max[selectedDisease]) || 0) ? item : max), data[0] || {});
+  const latestRecord = data.length > 0 ? data[data.length - 1] : null;
+  const latestCases = latestRecord ? (Number(latestRecord[selectedDisease]) || 0) : 0;
+  const latestWeekNum = latestRecord ? latestRecord.epi_week : 'N/A';
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -101,7 +104,20 @@ export default function App() {
 
       {/* Analytics KPI Section */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
         <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-xl flex items-center gap-4">
+          <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+            <Calendar size={24} />
+          </div>
+          <div>
+            <p className="text-sm text-slate-400 font-medium">Latest Week Figures</p>
+            <h3 className="text-2xl font-bold text-white mt-0.5">
+              {latestCases.toLocaleString()} <span className="text-xs text-slate-400 font-normal">cases in Week {latestWeekNum}</span>
+            </h3>
+          </div>
+        </div>
+
+        <div className="hidden md:flex bg-slate-800 border border-slate-700/60 p-5 rounded-xl flex items-center gap-4">
           <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400"><Activity size={24} /></div>
           <div>
             <p className="text-sm text-slate-400 font-medium">Cumulative YTD Cases</p>
@@ -109,25 +125,16 @@ export default function App() {
           </div>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-xl flex items-center gap-4">
+        <div className="hidden md:flex bg-slate-800 border border-slate-700/60 p-5 rounded-xl flex items-center gap-4">
           <div className="p-3 bg-rose-500/10 rounded-lg text-rose-400"><ShieldAlert size={24} /></div>
           <div>
             <p className="text-sm text-slate-400 font-medium">Peak Weekly Count</p>
             <h3 className="text-2xl font-bold text-white mt-0.5">
-              {maxWeek[selectedDisease] ? String(maxWeek[selectedDisease]) : '0'} <span className="text-xs text-slate-400 font-normal">cases</span>
+              {maxWeek[selectedDisease] ? String(maxWeek[selectedDisease]) : '0'} <span className="text-xs text-slate-400 font-normal">cases in Week {String(maxWeek.epi_week || 'N/A')}</span>
             </h3>
           </div>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-xl flex items-center gap-4">
-          <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400"><Calendar size={24} /></div>
-          <div>
-            <p className="text-sm text-slate-400 font-medium">Peak Epi-Week Timeline</p>
-            <h3 className="text-2xl font-bold text-white mt-0.5">
-              Week {String(maxWeek.epi_week || 'N/A')}
-            </h3>
-          </div>
-        </div>
       </section>
 
       {/* Main Chart Canvas */}
