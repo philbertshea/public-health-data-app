@@ -36,7 +36,7 @@ jobs:
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         
         # Check if the weekly_infectious_bulletin_data.json file actually changed
-        git add weekly_infectious_bulletin_data.json
+        git add frontend/public/weekly_infectious_bulletin_data.json
         if git diff --staged --quiet; then
           echo "No new data changes detected this week."
         else
