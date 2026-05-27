@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -134,6 +135,8 @@ func main() {
 					val, err := strconv.Atoi(cellValue)
 					if err != nil {
 						diseaseMap[headerName] = 0
+					} else if contains([]string{"acute_upper_respiratory_tract_infections", "acute_conjunctivitis", "acute_diarrhoea", "chickenpox", "hfmd"}, headerName) {
+						diseaseMap[headerName] = int(math.Round(float64(val) * 5.5))
 					} else {
 						diseaseMap[headerName] = val
 					}
@@ -186,4 +189,13 @@ func main() {
 	}
 
 	fmt.Printf("Successfully processed %d epidemiological weeks using Go!\n", len(timeSeriesData))
+}
+
+func contains(list []string, target string) bool {
+	for _, item := range list {
+		if item == target {
+			return true
+		}
+	}
+	return false
 }
