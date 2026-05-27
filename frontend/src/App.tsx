@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Activity, ShieldAlert, Calendar } from 'lucide-react';
 
@@ -14,6 +14,7 @@ export default function App() {
   const [diseases, setDiseases] = useState<string[]>([]);
   const [selectedDisease, setSelectedDisease] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -23,6 +24,12 @@ export default function App() {
         
         setData(json);
 
+        setTimeout(() => {
+          if (chartContainerRef.current) {
+            chartContainerRef.current.scrollLeft = chartContainerRef.current.scrollWidth;
+          }
+        }, 100);
+        
         // Extract available disease fields dynamically from keys
         if (json.length > 0) {
           const keys = Object.keys(json[0]).filter(
@@ -59,9 +66,9 @@ export default function App() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
             <Activity className="text-emerald-400" size={32} />
-            Infectious Disease Dashboard
+            Singapore Infectious Disease Dashboard
           </h1>
-          <p className="text-slate-400 mt-1">Weekly time-series tracking driven by an automated Go ingestion engine.</p>
+          <p className="text-slate-400 mt-1">Infectious Disease Statistics pulled from <a href="https://www.cda.gov.sg/resources/weekly-infectious-diseases-bulletin-2026/">Weekly Infectious Diseases Bulletin</a>.</p>
         </div>
         
         {/* Dropdown Disease Selection Menu */}
@@ -113,37 +120,89 @@ export default function App() {
         </div>
       </section>
 
-      {/* Main Chart Card */}
+      {/* Main Chart Canvas */}
       <main className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-xl">
-        <h2 className="text-xl font-semibold text-white mb-6 capitalize flex items-center gap-2">
-          Weekly Timeline Metric: {selectedDisease.replace(/_/g, ' ')}
-        </h2>
-        <div className="h-[400px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis 
-                dataKey="epi_week" 
-                stroke="#94a3b8" 
-                tickFormatter={(value) => `Wk ${value}`}
-              />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px', color: '#fff' }}
-                labelFormatter={(label) => `Epidemiological Week ${label}`}
-              />
-              <Line 
-                type="monotone" 
-                dataKey={selectedDisease} 
-                stroke="#10b981" 
-                strokeWidth={3} 
-                activeDot={{ r: 8 }} 
-                dot={{ strokeWidth: 2, r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
+          <h2 className="text-xl font-semibold text-white capitalize flex items-center gap-2">
+            Weekly Timeline Metric: {selectedDisease.replace(/_/g, ' ')}
+          </h2>
+          <span className="text-xs text-slate-400 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-700">
+            👈 Scroll left to view historical data
+          </span>
+        </div>
+
+        {/* Unified Flex Wrapper to hold the locked Y-Axis and the scrollable viewport side-by-side */}
+        <div className="flex h-[400px] w-full relative">
+          
+          {/* COMPONENT 1: FIXED Y-AXIS BAR */}
+          {/* We lock this to a exact width and hide the horizontal components */}
+          <div className="w-[60px] h-full flex-shrink-0 bg-slate-800 z-10 pr-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 24 }}>
+                {/* Clone the precise YAxis configuration so ticks map perfectly */}
+                <YAxis 
+                  stroke="#94a3b8" 
+                  fontSize={12}
+                  tickLine={false}
+                />
+                {/* We pass an invisible line so the chart assigns the correct scale, but displays nothing else */}
+                <Line type="monotone" dataKey={selectedDisease} stroke="transparent" dot={false} activeDot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* COMPONENT 2: SCROLLABLE TIMELINE WINDOW */}
+          {/* This outer frame handles the horizontal finger swipes or scrollbars */}
+          <div 
+            ref={chartContainerRef} 
+            className="flex-grow h-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900"
+          >
+            {/* The canvas scales out dynamically based on the total week records in your dataset */}
+            <div 
+              style={{ 
+                width: data.length > 10 ? `${(data.length / 10) * 100}%` : '100%',
+                minWidth: '100%' 
+              }} 
+              className="h-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data} margin={{ top: 10, right: 30, left: 5, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  
+                  {/* The X-Axis lives natively inside here so it slides with the weeks */}
+                  <XAxis 
+                    dataKey="epi_week" 
+                    stroke="#94a3b8" 
+                    fontSize={12}
+                    tickFormatter={(value) => `Wk ${value}`}
+                  />
+                  
+                  {/* Hide the duplicate Y-Axis numbers in this window, but keep the axis line layout for scale reference */}
+                  <YAxis stroke="transparent" tick={false} width={0} />
+                  
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px', color: '#fff' }}
+                    labelFormatter={(label) => `Epidemiological Week ${label}`}
+                  />
+                  
+                  <Line 
+                    type="monotone" 
+                    dataKey={selectedDisease} 
+                    stroke="#10b981" 
+                    strokeWidth={3} 
+                    activeDot={{ r: 8 }} 
+                    dot={{ strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
         </div>
       </main>
+
+      {/* Disclaimer */}
+      <p className="text-slate-400 mt-1">Information may contain errors. Check Government websites for the most updated information.</p>
     </div>
   );
 }
