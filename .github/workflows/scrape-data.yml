@@ -1,0 +1,45 @@
+name: Weekly Disease Data Sync
+
+on:
+  schedule:
+    # Runs every Sunday at 18:00 UTC (Monday 2:00 AM Singapore Time)
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+    # Allows you to manually trigger the pipeline anytime via the GitHub UI button
+
+jobs:
+  sync-data:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Pull down the repository code into the runner
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # 2. Set up the official Go environment runtime
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+        cache-dependency-path: backend/go.sum
+
+    # 3. Run the Go pipeline script
+    - name: Run Data Pipeline
+      run: |
+        cd backend
+        go run .
+
+    # 4. Commit and push the updated JSON file back to the repository
+    - name: Commit and Push Changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        
+        # Check if the weekly_infectious_bulletin_data.json file actually changed
+        git add weekly_infectious_bulletin_data.json
+        if git diff --staged --quiet; then
+          echo "No new data changes detected this week."
+        else
+          git commit -m "Automated Sync: Update weekly infectious bulletin data"
+          git push
+        fi
