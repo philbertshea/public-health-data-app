@@ -14,7 +14,7 @@ import (
 )
 
 const excelURL = "https://isomer-user-content.by.gov.sg/18/29cc3a1e-e24b-423b-b71f-abf56e8ab323/weekly-infectious-disease-bulletin-year-2026.xlsx"
-const outputJSON = "../weekly_infectious_bulletin_data.json"
+const outputJSON = "../frontend/public/weekly_infectious_bulletin_data.json"
 
 func main() {
 	fmt.Println("Starting Go Data Pipeline...")
