@@ -177,10 +177,12 @@ export default function App() {
             {/* The canvas scales out dynamically based on the total week records in your dataset */}
             <div
               style={{
-                width: data.length > 10 ? `${(data.length / 10) * 100}%` : '100%',
+                // We define a fallback ratio (--visible-weeks) using a CSS variable
+                width: data.length > 0 ? `calc((${data.length} / var(--visible-weeks, 5)) * 100%)` : '100%',
                 minWidth: '100%'
               }}
-              className="h-full"
+              // [style] blocks set the blueprint, while Tailwind overrides the variable based on screen size!
+              className="h-full [--visible-weeks:5] md:[--visible-weeks:10]"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 10, right: 30, left: 5, bottom: 0 }}>
