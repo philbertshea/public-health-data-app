@@ -1,0 +1,13 @@
+@theme {
+  --color-slate-900: #0f172a;
+  --color-slate-100: #f1f5f9;
+}
+
+/* Fallback to standard theme injection */
+@import "tailwindcss";
+
+body {
+  background-color: var(--color-slate-900);
+  color: var(--color-slate-100);
+  min-height: 100vh;
+}
