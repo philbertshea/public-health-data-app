@@ -2,8 +2,8 @@ name: Weekly Disease Data Sync
 
 on:
   schedule:
-    # Runs every Sunday at 18:00 UTC (Monday 2:00 AM Singapore Time)
-    - cron: '0 18 * * 0'
+    # Runs every Friday at 00:00 Singapore Time (which is Thursday 16:00 UTC)
+    - cron: '0 16 * * 4'
   workflow_dispatch:
     # Allows you to manually trigger the pipeline anytime via the GitHub UI button
 
